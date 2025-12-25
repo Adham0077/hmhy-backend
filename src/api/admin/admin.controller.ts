@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
@@ -23,12 +24,15 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/role.guard';
 import { Roles } from 'src/common/enum/index.enum';
 import { AccessRoles } from 'src/common/decorator/roles.decorator';
+import { Not } from 'typeorm';
+import type { IToken } from 'src/infrastructure/token/interface';
+import { CurrentUser } from 'src/common/decorator/current-user.decorator';
 
 @ApiTags('Admin')
 @Controller('admin')
 @ApiBearerAuth()
 export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+  constructor(private readonly adminService: AdminService) { }
 
   @ApiOperation({ summary: 'Create a new admin' })
   @ApiBody({ type: CreateAdminDto })
@@ -40,7 +44,7 @@ export class AdminController {
         status: 'success',
         data: {
           id: '1',
-          username: 'suhrob',
+          username: 'admin',
           phoneNumber: '+998901234567',
           role: 'ADMIN',
         },
@@ -69,7 +73,7 @@ export class AdminController {
         data: [
           {
             id: '1',
-            username: 'suhrob',
+            username: 'admin',
             phoneNumber: '+998901234567',
             role: 'ADMIN',
           },
@@ -92,8 +96,8 @@ export class AdminController {
       example: {
         status: 'success',
         data: {
-          id: '1',
-          username: 'suhrob',
+          id: 'UUID',
+          username: 'admin',
           phoneNumber: '+998901234567',
           role: 'ADMIN',
         },
@@ -141,6 +145,36 @@ export class AdminController {
     return this.adminService.updateAdmin(updateAdminDto, id);
   }
 
+  @ApiOperation({ summary: 'Get admin profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Admin profile',
+    schema: {
+      example: {
+        status: 'success',
+        data: {
+          id: 'UUID',
+          username: 'admin',
+          phoneNumber: '+998901234567',
+          role: 'ADMIN',
+          createdAt:'',
+          updatedAt:'',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Admin not found',
+    schema: { example: { status: 'error', message: 'Admin not found' } },
+  })
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.SUPER_ADMIN, Roles.ADMIN)
+  @Get('me')
+  getCurrentAdmin(@CurrentUser() user: IToken) {
+    return this.adminService.getCurrentAdmin(user.id);
+  }
+
   @ApiOperation({ summary: 'Delete admin by ID' })
   @ApiResponse({
     status: 200,
@@ -157,7 +191,16 @@ export class AdminController {
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @AccessRoles(Roles.SUPER_ADMIN)
-  remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.adminService.delete(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    const data = await this.adminService.findOneById(id, {
+      where: {
+        role: Not(Roles.SUPER_ADMIN),
+      },
+    });
+    if (data) {
+      return this.adminService.delete(id);
+    } else {
+      throw new NotFoundException('Admin not found');
+    }
   }
 }

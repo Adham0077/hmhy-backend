@@ -14,14 +14,14 @@ export class CreateAdminDto {
   @IsNotEmpty()
   @MinLength(3)
   @MaxLength(50)
-  @ApiProperty({ example: 'suhrob', description: 'Admin username' })
+  @ApiProperty({ example: 'admin2', description: 'Admin username' })
   username: string;
 
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
   @MaxLength(100)
-  @ApiProperty({ example: 'suhrob1234', description: 'Admin password' })
+  @ApiProperty({ example: 'admin1234', description: 'Admin password' })
   password: string;
 
   @IsString()

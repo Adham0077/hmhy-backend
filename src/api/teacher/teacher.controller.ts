@@ -44,7 +44,7 @@ export class TeacherController {
     private jwtService: JwtService,
     private readonly mailService: MailerService,
     @InjectRedis() private readonly redis: Redis,
-  ) {}
+  ) { }
 
   // Google OAuth endpoints
   @Get('google')
@@ -194,6 +194,29 @@ export class TeacherController {
     };
   }
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RolesGuard)
+  @AccessRoles(Roles.TEACHER, 'ID')
+  @Get('me')
+  getMe(@CurrentUser() user: IToken) {
+    return this.teacherService.findOneById(user.id, {
+      select: {
+        cardNumber: true,
+        description: true,
+        email: true,
+        fullName: true,
+        phoneNumber: true,
+        experience: true,
+        hourPrice: true,
+        imageUrl: true,
+        level: true,
+        portfolioLink: true,
+        rating: true,
+        specification: true,
+      },
+    });
+  }
+
   // ===================== CRUD =====================
   @ApiBearerAuth()
   @UseGuards(AuthGuard, RolesGuard)
@@ -279,28 +302,6 @@ export class TeacherController {
     return this.teacherService.delete(id);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard, RolesGuard)
-  @AccessRoles(Roles.TEACHER)
-  @Get('me')
-  getMe(@CurrentUser() user: IToken) {
-    return this.teacherService.findOneById(user.id, {
-      select: {
-        cardNumber: true,
-        description: true,
-        email: true,
-        fullName: true,
-        phoneNumber: true,
-        experience: true,
-        hourPrice: true,
-        imageUrl: true,
-        level: true,
-        portfolioLink: true,
-        rating: true,
-        specification: true,
-      },
-    });
-  }
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard, RolesGuard)

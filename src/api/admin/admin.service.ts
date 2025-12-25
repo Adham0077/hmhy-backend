@@ -19,8 +19,7 @@ import { ISuccess } from 'src/infrastructure/pagination/successResponse';
 @Injectable()
 export class AdminService
   extends BaseService<CreateAdminDto, UpdateAdminDto, Admin>
-  implements OnModuleInit
-{
+  implements OnModuleInit {
   constructor(
     @InjectRepository(Admin) private readonly adminRepo: AdminRepository,
     private readonly crypto: CryptoService,
@@ -86,7 +85,7 @@ export class AdminService
       const existsUsername = await this.adminRepo.findOne({
         where: { username },
       });
-      if (existsUsername && existsUsername.id === id)
+      if (existsUsername && existsUsername.id !== id)
         throw new ConflictException('Username already exists');
     }
 
@@ -106,5 +105,18 @@ export class AdminService
     const updatetAdmin = await this.adminRepo.update(id, dto);
 
     return successRes(updatetAdmin);
+  }
+
+  async getCurrentAdmin(id: string) {
+    const admin = await this.adminRepo.findOne({
+      where: { id },
+      select: ['id', 'username', 'phoneNumber', 'role', 'createdAt', 'updatedAt'],
+    });
+
+    if (!admin) {
+      throw new NotFoundException('Admin not found');
+    }
+
+    return successRes(admin);
   }
 }
