@@ -43,15 +43,14 @@ export class Application {
   }
 
   private setupCors(app: NestExpressApplication): void {
-  app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'https://hmhyf.netlify.app',
-    ],
-    credentials: true,
-    methods: this.CORS_METHODS,
-  });
-}
+    const origins = (config.CORS_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+
+    app.enableCors({
+      origin: origins.length ? origins : true,
+      credentials: true,
+      methods: this.CORS_METHODS,
+    });
+  }
 
 
   private setupGlobalPrefix(app: NestExpressApplication): void {
@@ -126,10 +125,10 @@ export class Application {
   }
 
   private async startServer(app: NestExpressApplication): Promise<void> {
-    await app.listen(config.PORT, () => {
+    await app.listen(process.env.PORT || config.PORT, () => {
       console.log(`Swagger docs: ${config.SWAGGER_URL}`);
       // console.log(`Server running on: ${config.BACKEND_URL}`);
     });
-    
+
   }
 }

@@ -175,7 +175,7 @@ export class TeacherController {
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee;">
           <h2>Tasdiqlash kodi</h2>
           <p>Sizning ro'yxatdan o'tish kodingiz:</p>
-          <h1 style="color: #4CAF50;">${otp}</h1>
+          <h1 style="color: #0c500eff;">${otp}</h1>
           <p>Ushbu kod 5 daqiqa davomida amal qiladi.</p>
         </div>
       `,

@@ -8,7 +8,7 @@ import { TeacherModule } from './teacher/teacher.module';
 import { JwtModule } from '@nestjs/jwt';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { LessonModule } from './lesson/lesson.module';
-// import { StudentModule } from './student/student.module';
+import { StudentModule } from './student/student.module';
 import { LessonHistoryModule } from './lesson-history/lesson-history.module';
 import { NotificationModule } from './notification/notification.module';
 import { TransactionModule } from './transaction/transaction.module';
@@ -21,8 +21,8 @@ import { TransactionModule } from './transaction/transaction.module';
       useFactory: async () => ({
         type: 'postgres',
         url: config.DB_URL,
-        synchronize: true,
-        entities: ['dist/core/entity/*.entity{.ts,.js}'],
+        synchronize: config.NODE_ENV !== 'production',
+        entities: [__dirname + '/../**/*.entity{.js,.ts}'],
         autoLoadEntities: true,
         ssl:
           config.NODE_ENV === 'production'
@@ -39,13 +39,15 @@ import { TransactionModule } from './transaction/transaction.module';
 
     RedisModule.forRoot({
       type: 'single',
-      url: `redis://:${config.REDIS_PASSWORD}@${config.REDIS_HOST}:${config.REDIS_PORT}`,
+      url: config.REDIS_URL
+        ? config.REDIS_URL
+        : `redis://:${config.REDIS_PASSWORD}@${config.REDIS_HOST}:${config.REDIS_PORT}`,
     }),
 
     AuthModule,
     AdminModule,
     TeacherModule,
-    // StudentModule,
+    StudentModule,
     LessonModule,
     LessonHistoryModule,
     LessonHistoryModule,
@@ -53,4 +55,4 @@ import { TransactionModule } from './transaction/transaction.module';
     TransactionModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
